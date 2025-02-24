@@ -639,7 +639,7 @@ ${docstring}
 		_crc_extra = ${crc_extra}
 		_instance_field = ${instance_field}
 		_instance_offset = ${instance_offset}
-		_fmt = "${native_fmtstr}"
+		_fmt = "${fmtstr}"
 	func set_array(args : Array) -> void:
 		assert(args.size() == ${fields_count})
 		${set_array_fields}
@@ -730,7 +730,7 @@ def mavpytype(field):
     c_type_to_py = {
         "float": "float",
         "double": "float",
-        "char": "PackedByteArray",
+        "char": "String",
         "int8_t": "int",
         "uint8_t": "int",
         "uint8_t_mavlink_version": "int",
@@ -744,7 +744,7 @@ def mavpytype(field):
 
     if field.array_length:
         if field.type == "char":
-            return "PackedByteArray"
+            return "String"
         return "Array[{}]".format(c_type_to_py[field.type])
     return c_type_to_py[field.type]
 
