@@ -739,7 +739,7 @@ def mavpytype(field):
     if field.array_length:
         if field.type == "char":
             return "String"
-        return "Array[{}]".format(c_type_to_py[field.type])
+        return "Array"
     return c_type_to_py[field.type]
 
 
