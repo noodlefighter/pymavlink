@@ -5,8 +5,8 @@ parse a MAVLink protocol XML file and generate a python implementation
 Copyright Andrew Tridgell 2011
 Released under GNU GPL version 3 or later
 
-测试命令：
-./tools/mavgen.py --lang='GDScript' --output=mavgen_test ../mavlink/message_definitions/v1.0/common.xml --wire-protocol=2.0 --strict-units
+生成命令：
+./tools/mavgen.py --lang='GDScript' --output=mavlink.gd ../mavlink/message_definitions/v1.0/common.xml --wire-protocol=2.0 --strict-units
 """
 from __future__ import print_function
 
@@ -604,13 +604,7 @@ def generate_classes(outf, msgs, enable_type_annotations):
 
         pack_fields = []
         for field in m.ordered_fields:
-            if field.array_length == 0:
-                pack_fields.append("self.s_{0:s}".format(field.name))
-            else:
-                for i in range(field.array_length):
-                    pack_fields.append("self.s_{0:s}[{1:d}]".format(field.name, i))
-
-
+            pack_fields.append("self.s_{0:s}".format(field.name))
 
         t.write(
             outf,
@@ -752,7 +746,7 @@ def mavpytype(field):
 def mavdefault(field):
     """returns default value for field (as string) for mavlink2 extensions"""
     if field.type == "char":
-        return '[]'
+        return '""'
     else:
         if field.array_length == 0:
             return "0"
