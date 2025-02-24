@@ -252,6 +252,9 @@ class MAVLink_header:
 
 		return byte_array
 
+	func _to_string():
+		return "{mlen: %d,  seq: %d, srcSystem: %d, srcComponent: %d, msgId: %d, incompat_flags: %d, compat_flags: %d}" % [mlen, seq, srcSystem, srcComponent, msgId, incompat_flags, compat_flags]
+
 func test_mavlink_header_pack_v2():
 	var header = MAVLink_header.new(12345, 0, 0, 10, 1, 1, 1)
 	var packed_data = header.pack(false)
@@ -1118,6 +1121,14 @@ class MAVLinkContext:
 		m._header = MAVLink_header.new(msgId, incompat_flags, compat_flags, mlen, seq, srcSystem, srcComponent)
 		return m
 
+func bytes_to_hexstr(data : PackedByteArray):
+	var tmp : String
+
+	for i in data:
+		tmp += "%02X " % i
+	tmp.strip_edges()
+	return tmp
+
 func test_mavlink_endecode():
 	const TEST_SRC_SYSTEM = 55
 	const TEST_SRC_COMPONENT = 66
@@ -1126,10 +1137,11 @@ func test_mavlink_endecode():
 
 	var encode_msg = MAVLink_heartbeat_message.new()
 	encode_msg.set_args(1,2,3,4,5,6)
+	encode_msg.s_type = MAV_TYPE_ADSB
 	print("encode_msg(heartbeat): %s" % encode_msg.to_string())
 
 	var encode_data : PackedByteArray = encode_msg.pack(mav_ctx)
-	print("encode_data: %s" % encode_data)
+	print("encode_data: %s" % bytes_to_hexstr(encode_data))
 
 	var decode_msg = mav_ctx.decode(encode_data)
 	print("decode_msg: %s" % decode_msg)
@@ -1142,6 +1154,29 @@ func test_mavlink_endecode():
 	assert(decode_msg.s_custom_mode == encode_msg.s_custom_mode)
 	assert(decode_msg.s_system_status == encode_msg.s_system_status)
 	assert(decode_msg.s_mavlink_version == encode_msg.s_mavlink_version)
+
+	var msg_data2 : PackedByteArray = [0xFD, 0x14, 0x00, 0x00, 0x9D, 0x01, 0xFA, 0x23, 0x00, 0x00, 0x3C, 0xC1, 0x04, 0x00, 0xDC, 0x05, 0xDC, 0x05, 0xDC, 0x05, 0x75, 0x03, 0xEF, 0x06, 0xDC, 0x05, 0xDC, 0x05, 0xDC, 0x05, 0x57, 0x68]
+	var decode_msg2 = mav_ctx.decode(msg_data2)
+	print("msg_data2: %s" % msg_data2)
+	print("decode_msg2: %s" % decode_msg2)
+
+	var msg_data3 : PackedByteArray = [0xFD, 0x1C, 0x00, 0x00, 0x9E, 0x01, 0xFA, 0x1E, 0x00, 0x00, 0x64, 0xC1, 0x04, 0x00, 0x35, 0xFA, 0x0E, 0xBC, 0xD8, 0xE9, 0x17, 0x3E, 0xA6, 0x92, 0x2B, 0x3C, 0xF5, 0xA5, 0x2A, 0x3B, 0x05, 0x7C, 0x81, 0xBB, 0xBF, 0xD8, 0x0E, 0x3D, 0xE6, 0x00]
+	var decode_msg3 = mav_ctx.decode(msg_data3)
+	print("msg_data3: %s" % msg_data3)
+	print("decode_msg3 header: %s" % decode_msg3._header)
+	print("decode_msg3: %s" % decode_msg3)
+
+	# 发给blueberry飞控的信息，想实现类似PING的效果
+	var encode_msg4 = MAVLink_timesync_message.new()
+	encode_msg4.s_ts1 = Time.get_unix_time_from_system()
+	encode_msg4.s_tc1 = 0
+	encode_msg4.s_target_system = 1
+	encode_msg4.s_target_component = 250
+	print("encode_msg(encode_msg4): %s" % encode_msg4)
+
+	var encode_data4 : PackedByteArray = encode_msg4.pack(mav_ctx)
+	print("encode_data4: %s" % bytes_to_hexstr(encode_data4))
+
 	print("test_mavlink_endecode: PASSED")
 
 func _init() -> void:
