@@ -800,7 +800,7 @@ class MAVLink_unknown:
 	var data: PackedByteArray
 
 	func _init(msgid: int, data: PackedByteArray) -> void:
-		super._init(MAVLINK_MSG_ID_UNKNOWN, "UNKNOWN_%u" % msgid)
+		super._init(MAVLINK_MSG_ID_UNKNOWN, "UNKNOWN_%d" % int(msgid))
 		_id = MAVLINK_MSG_ID_BAD_DATA
 		_msgname = "BAD_DATA"
 		self.data = data
@@ -1028,7 +1028,8 @@ class MAVLinkContext:
 			push_error("invalid MAVLink prefix '%s'" % str(magic))
 			return null
 		if mlen != msgbuf.size() - (headerlen + 2 + signature_len):
-			push_error("invalid MAVLink message length. Got %u expected %u, msgId=%u headerlen=%u" % [msgbuf.size() - (headerlen + 2 + signature_len), mlen, msgId, headerlen])
+			push_error("invalid MAVLink message length. Got %d expected %d, msgId=%d headerlen=%d"
+				% [msgbuf.size() - (headerlen + 2 + signature_len), mlen, int(msgId), int(headerlen)])
 			return null
 
 
@@ -1050,7 +1051,7 @@ class MAVLinkContext:
 			crc_calc.accumulate([crc_extra])
 
 		if crc != crc_calc.crc and not MAVLINK_IGNORE_CRC:
-			push_error("invalid MAVLink CRC in msgID %u 0x%04x should be 0x%04x" % [msgId, crc, crc_calc.crc])
+			push_error("invalid MAVLink CRC in msgID %d 0x%04x should be 0x%04x" % [int(msgId), int(crc), int(crc_calc.crc)])
 			return null
 
 		var sig_ok: bool = false
